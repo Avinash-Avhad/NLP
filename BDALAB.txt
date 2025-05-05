@@ -1,0 +1,541 @@
+1.	Download the Iris flower dataset or any other dataset into a DataFrame. (eg https://archive.ics.uci.edu/ml/datasets/Iris) Use Python/R and Perform following – 
+• How many features are there and what are their types (e.g., numeric, nominal)?
+• Compute and display summary statistics for each feature available in the dataset.(eg. minimum value, maximum value, mean, range, standard deviation, variance and percentiles 
+• Data Visualization-Create a histogram for each feature in the dataset to illustrate the feature distributions. Plot each histogram. 
+• Create a boxplot for each feature in the dataset. All of the boxplots should be combined into a single plot. Compare distributions and identify outliers. 
+Code:
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+
+data_set = pd.DataFrame(data= np.c_[iris['data'], iris['target']],
+                     columns= iris['feature_names'] + ['target'])
+
+# Complete information of all attributes of Iris
+print('\n', 'DATA SET INFORMATION'.center(45, '_'))
+print(data_set.info())
+
+# Description with Statistics of Iris Dataset
+print('\n', 'STATISTICAL INFORMATION'.center(45, '_'))
+print(data_set.describe())
+
+# Locate a specific type of Data type in Data set
+print('\n', 'COLUMNS DTYPE (IF NOMINAL)'.center(45, '_'))
+print(data_set.select_dtypes(include=['category']))
+
+# Data types of Iris column wise, to locate ordinal & nominal
+print('\n', 'COLUMNS DTYPE (ALL)'.center(45, '_'))
+print(data_set.dtypes)
+
+# Memory occupancy done by Dataset
+print('\n', 'DATA SET MEMORY USAGE'.center(45, '_'))
+print(data_set.memory_usage())
+
+# Counting any missing data (if any else zero)
+def num_missing(x):
+  return sum(x.isnull())
+
+#Applying per column:
+print('\n', 'MISSING VALUE CHECK'.center(45, '_'))
+print("Missing values per column:")
+print(data_set.apply(num_missing, axis=0)) 
+#axis=0 defines that function is to be applied on each column
+
+# Plotting Histogram
+# #1 All Features
+data_set[['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)','petal width (cm)']].plot.hist(bins=10,
+                                                                                                      title='All features')
+plt.show()
+
+# #2 Only 2 features at a time
+data_set[['sepal length (cm)', 'sepal width (cm)']].plot.hist(bins=10, title='Sepal Features')
+plt.show()
+
+data_set[['petal length (cm)','petal width (cm)']].plot.hist(bins=10, title='Petal Features')
+plt.show()
+
+# Plotting Boxplot
+data_set.plot.box(title="All Features with outliers")
+plt.show()
+# Try noticing the 'o', those are outliers. The ones who are not in InterQuertile Range (IQR) are Outliers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2.	Download Pima Indians Diabetes dataset. Use Naive Bayes‟ Algorithm for classification 
+• Load the data from CSV file and split it into training and test datasets. 
+• Summarize the properties in the training dataset so that we can calculate probabilities and make predictions. 
+• Classify samples from a test dataset and a summarized training dataset. 
+Code:
+# Importing Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Importing Dataset
+data_set = pd.read_csv('PimaIndiansDiabetes.csv')
+X = data_set.iloc[:, :-1]   # Independent Variables separated as X
+y = data_set.iloc[:, -1]    # Dependent Variables into y
+print("IV".center(40, "_"), '\n', X.head())
+print("DV".center(40, "_"), '\n', y.head())
+
+# Check for Missing Values
+print(X.isnull().any())
+print(y.isnull().any())
+
+# Summary
+print(X.info())
+# Turning into Raw / NP format
+X = X.values
+y = y.values
+
+# Noted the High Variance between All fields
+# Scaling required
+
+# 1. Splitting X,y into Train & Test
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+
+
+# 2. Scaling
+from sklearn.preprocessing import StandardScaler
+scaler_X = StandardScaler()
+X_train = scaler_X.fit_transform(X_train)
+X_test = scaler_X.transform(X_test)
+
+# Machine: Classifier | NB: Gaussian Naive Bayes
+from sklearn.naive_bayes import GaussianNB
+classifier = GaussianNB()
+classifier.fit(X_train, y_train)
+
+# Predictions
+y_pred = classifier.predict(X_test)
+
+# Validating Predictions using Confusion Matrix
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+
+from sklearn.metrics import precision_recall_fscore_support
+prf = precision_recall_fscore_support(y_test, y_pred)
+print('\t\t\t\t ZERO\t\t\tONE')
+print('Precision\t:', prf[0]*100)
+print('Recall\t\t:', prf[1]*100)
+print('F1 Measure\t:', prf[2]*100)
+print('Support\t\t:', prf[3])
+
+
+
+3.	Write a Hadoop program that counts the number of occurrences of each word in a text file. 
+
+Hadoop Installation Guide:
+https://www.michael-noll.com/tutorials/running-hadoop-on-ubuntu-linux-single-nade-cluster/
+
+Code:
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class WordCount {
+
+  public static class TokenizerMapper
+       extends Mapper<Object, Text, Text, IntWritable>{
+
+    private final static IntWritable one = new IntWritable(1);
+    private Text word = new Text();
+
+    public void map(Object key, Text value, Context context
+                    ) throws IOException, InterruptedException {
+      StringTokenizer itr = new StringTokenizer(value.toString());
+      while (itr.hasMoreTokens()) {
+        word.set(itr.nextToken());
+        context.write(word, one);
+      }
+    }
+  }
+
+  public static class IntSumReducer
+       extends Reducer<Text,IntWritable,Text,IntWritable> {
+    private IntWritable result = new IntWritable();
+
+    public void reduce(Text key, Iterable<IntWritable> values,
+                       Context context
+                       ) throws IOException, InterruptedException {
+      int sum = 0;
+      for (IntWritable val : values) {
+        sum += val.get();
+      }
+      result.set(sum);
+      context.write(key, result);
+    }
+  }
+
+  public static void main(String[] args) throws Exception {
+    Configuration conf = new Configuration();
+    Job job = Job.getInstance(conf, "word count");
+    job.setJarByClass(WordCount.class);
+    job.setMapperClass(TokenizerMapper.class);
+    job.setCombinerClass(IntSumReducer.class);
+    job.setReducerClass(IntSumReducer.class);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(IntWritable.class);
+    FileInputFormat.addInputPath(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4. Write a program that interacts with the weather database. Find the day and the station with the maximum snowfall in 2013 
+Code:
+import java.io.IOException;
+import java.util.*;        
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+        
+public class Snow {        
+ public static class Map extends Mapper<LongWritable, Text, Text, FloatWritable> {
+    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+       		String line = value.toString();
+			String dateStation = null;
+			float snow = 0.0f;
+			StringTokenizer s = new StringTokenizer(line,",");
+			String date = s.nextToken();
+			if(date.startsWith("2013")) {
+				String station = s.nextToken();
+				String temp = s.nextToken();
+				temp = s.nextToken();
+				temp = s.nextToken();
+				temp = s.nextToken();	
+				snow = Float.parseFloat(temp);	
+				dateStation = "Date: " + date + ", Station: " + station;
+				if(snow!=0.0f)
+					context.write(new Text(dateStation), new FloatWritable(snow));
+			}
+    	}
+ } 
+        
+ public static class Reduce extends Reducer<Text, FloatWritable, Text, FloatWritable> {
+	float max = 0.0f;
+	Text date = new Text();
+    public void reduce(Text key, Iterable<FloatWritable> values, Context context) 
+      throws IOException, InterruptedException {	
+			for (FloatWritable val : values) {
+					float num = val.get();
+					if(num > max) {
+						max = num;				
+						date = key;	
+					}
+			}
+    }
+ public void cleanup(Context context) throws IOException, InterruptedException {
+			context.write(new Text("Max snowfall in 2013:"),new FloatWritable(0.0f));
+			context.write(date, new FloatWritable(max));
+		}
+ }
+        
+ public static void main(String[] args) throws Exception {
+    Configuration conf = new Configuration();
+    Job job = new Job(conf, "Snowfall");
+    
+    job.setJarByClass(Snow.class);
+
+    job.setMapperClass(Map.class);
+    job.setCombinerClass(Reduce.class);
+    job.setReducerClass(Reduce.class);
+        
+    job.setInputFormatClass(TextInputFormat.class);
+    job.setOutputFormatClass(TextOutputFormat.class);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(FloatWritable.class);
+    FileInputFormat.addInputPath(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
+ }     
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5.	Trip History Analysis: Use trip history dataset that is from a bike sharing service in the United States. The data is provided quarter-wise from 2010 (Q4) onwards. Each file has 7 columns. Predict the class of user. Sample Test data set available here https://www.capitalbikeshare.com/trip-history-data
+
+Code:
+
+#Import the relevant libraries
+import pandas as pd
+import numpy as np                     # For mathematical calculations               
+import matplotlib.pyplot as plt        # For plotting graphs
+%matplotlib inline
+import seaborn as sns # For data visualization
+sns.set_style('whitegrid')
+import warnings                        # To ignore any warnings
+warnings.filterwarnings("ignore")
+from IPython.core.interactiveshell import InteractiveShell
+InteractiveShell.ast_node_interactivity = "all"
+
+#Load data onto memmory using the pandas library
+data = pd.read_csv("E:/Training/AI Saturdays/Ambassador/Strathmore/Lecture Notes/Week 5/201809-capitalbikeshare-tripdata/sub_data.csv")
+
+data.head()
+
+#Lets analyse the measures of central dispersion of the data for the few columns with Numeric values
+
+data.describe()
+#Check the variables/features of the dataset
+data.columns
+
+#Check the first five rows of the datafrmae
+data.head()
+
+#Univariate Analysis
+#Exploring the Target Variable. Our target variable is the Member Type column
+data['Member Type'].value_counts()
+
+
+#Checking for missing values in any column/features
+data.isnull().sum()
+
+
+#Convert the Categorical Values to Numerical to allow us perform plotting
+#import the library LabelEncoder
+from sklearn.preprocessing import LabelEncoder
+#Create a list with categorical predictors
+cat_var =['Start station','End station','Bike Number','Member Type']
+#Initiate LabelEncoder
+le = LabelEncoder() 
+#A for loop to transform the categorical values to numerical values
+for n in cat_var:
+    data[n] = le.fit_transform(data[n])
+
+#Checking for the type of the predictors afterwards
+data.dtypes
+
+
+#Explore the relationship between duration and member type
+data.plot( x='Duration', y='Member Type',style='*')  
+plt.title('Duration of Bike Use')  
+plt.xlabel('Duration')  
+plt.ylabel('Member Type')  
+plt.show() 
+
+#Explore the relationship between Start Station and member type
+data.plot( x='Start station', y='Member Type',style='*')  
+plt.title('Start station by Member Type')  
+plt.xlabel('Start station')  
+plt.ylabel('Member Type')  
+plt.show()  
+
+
+#Explore the relationship between End Station and member type
+data.plot( x='End station', y='Member Type',style='*')  
+plt.title('End station by Member Type')  
+plt.xlabel('End station')  
+plt.ylabel('Member Type')  
+plt.show()  
+
+#Explore the relationship between Bike Number and member type
+data.plot( x='Bike Number', y='Member Type',style='*')  
+plt.title('Bike Number by Member Type')  
+plt.xlabel('Bike Number')  
+plt.ylabel('Member Type')  
+plt.show()  
+
+#Explore the relationship between End Station and Duration
+data.plot( x='End station', y='Duration',style='*')  
+plt.title('End station by Duration')  
+plt.xlabel('End station')  
+plt.ylabel('Duration')  
+plt.show()  
+
+
+#Explore the relationship between Start Station and Duration
+data.plot( x='Start station', y='Duration',style='*')  
+plt.title('Start station by Duration')  
+plt.xlabel('Start station')  
+plt.ylabel('Duration')  
+plt.show() 
+
+#Lets plot a simple bar graph on the target variable
+data['Member Type'].value_counts().hist()
+
+#Lets plot a simple bar graph on the target variable and confirm the output we got earlier
+data['Member Type'].value_counts().plot.bar();
+
+#We can take a look at Member Type  by Duration
+
+data.boxplot(column='Member Type', by = 'Duration')
+plt.suptitle("");
+
+data.boxplot(column='Member Type', by = 'Start station')
+plt.suptitle("");
+
+#Analysing more than one variable
+#We can take a look at Member Type by End Station
+data.boxplot(column='Member Type', by = 'End station')
+plt.suptitle("")
+
+#Analysing more than one variable
+#We can take a look at Member Type by Start Station
+data.boxplot(column='Member Type', by = 'Start station')
+plt.suptitle("")
+
+
+#Creation of Duration categories and analysing them per Member Type
+bins=[0,2500,4000,6000,25000]
+group=['Low','Average','High', 'Very high']
+data['Duration']=pd.cut(data['Duration'],bins,labels=group)
+
+Duration=pd.crosstab(data['Duration'], data['Member Type'])
+Duration.div(Duration.sum(1).astype(float), axis=0).plot(kind="bar", stacked=True)
+plt.xlabel('Duration')
+P = plt.ylabel('Member Type')
+
+#Creation of Duration categories and analysing them per Start Station
+bins=[0,2500,4000,6000,25000]
+group=['Low','Average','High', 'Very high']
+data['Duration']=pd.cut(data['Duration'],bins,labels=group)
+
+Duration=pd.crosstab(data['Duration'], data['Start station'])
+Duration.div(Duration.sum(1).astype(float), axis=0).plot(kind="bar", stacked=True)
+plt.xlabel('Duration')
+P = plt.ylabel('Start station')
+
+
+#Creation of Duration categories and analysing them per End Station
+bins=[0,2500,4000,6000,25000]
+group=['Low','Average','High', 'Very high']
+data['Duration']=pd.cut(data['Duration'],bins,labels=group)
+
+Duration=pd.crosstab(data['Duration'], data['End station'])
+Duration.div(Duration.sum(1).astype(float), axis=0).plot(kind="bar", stacked=True)
+plt.xlabel('Duration')
+P = plt.ylabel('End station')
+
+#Creation of Duration categories and analysing them per Bike Number
+bins=[0,2500,4000,6000,25000]
+group=['Low','Average','High', 'Very high']
+data['Duration']=pd.cut(data['Duration'],bins,labels=group)
+
+Duration=pd.crosstab(data['Duration'], data['Bike Number'])
+Duration.div(Duration.sum(1).astype(float), axis=0).plot(kind="bar", stacked=True)
+plt.xlabel('Duration')
+P = plt.ylabel('Bike Number')
+
+data.plot(x='Duration', y='Member Type', style='*')  
+plt.title('Member Type by Duration')  
+plt.xlabel('Duration')  
+plt.ylabel('Member Type')  
+plt.show() 
+
+
+#import the library LabelEncoder
+from sklearn.preprocessing import LabelEncoder
+#Create a list with categorical predictors
+cat_var =['Start station','End station','Bike Number','Member Type']
+#Initiate LabelEncoder
+le = LabelEncoder() 
+#A for loop to transform the categorical values to numerical values
+for n in cat_var:
+    data[n] = le.fit_transform(data[n])
+
+#Checking for the type of the predictors afterwards
+data.dtypes
+
+#Creating variables x is ithe input and Y is the target
+X = data.iloc[:, 0:6]
+
+Y = data[data.columns[-1]]
+
+
+data.head()
+
+
+#The Model using sklearn
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+log_reg = LogisticRegression()
+
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.3, random_state=3)
+
+log_reg.fit(X_train, Y_train)
+
+from sklearn import metrics
+
+Y_pred = log_reg.predict(X_test)
+
+print(metrics.accuracy_score(Y_test, Y_pred))
