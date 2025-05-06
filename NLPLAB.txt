@@ -348,4 +348,42 @@ if __name__ == "__main__":
     print(output.shape)
 
 
+# ----------------------------------------------------------------------------------- Practical No. 5 -----------------------------------------------------------------------
+
+"""Morphology is the study of the way words are built up from smaller meaning bearing units. Study 
+and understand the concepts of morphology by the use of add delete table  """
+
+# Define a base list of words and morphemes
+base_words = ['like', 'agree', 'help', 'break', 'act']
+prefixes = ['un', 'dis', 're']
+suffixes = ['ful', 'able', 'ment', 'ion']
+
+# Function to add morphemes
+def add_morpheme(word, prefix=None, suffix=None):
+    new_word = word
+    if prefix:
+        new_word = prefix + new_word
+    if suffix:
+        new_word = new_word + suffix
+    return new_word
+
+# Function to remove morphemes
+def delete_morpheme(word, prefix=None, suffix=None):
+    new_word = word
+    if prefix and new_word.startswith(prefix):
+        new_word = new_word[len(prefix):]
+    if suffix and new_word.endswith(suffix):
+        new_word = new_word[:-len(suffix)]
+    return new_word
+
+# Display the Add/Delete Table
+print(f"{'Base Word':<10} {'Prefix':<7} {'Suffix':<7} {'Added Word':<20} {'Removed Word':<15}")
+print("-" * 70)
+
+for base in base_words:
+    for pre in prefixes:
+        for suf in suffixes:
+            added = add_morpheme(base, prefix=pre, suffix=suf)
+            removed = delete_morpheme(added, prefix=pre, suffix=suf)
+            print(f"{base:<10} {pre:<7} {suf:<7} {added:<20} {removed:<15}")
 
